@@ -42,29 +42,25 @@ print_err_short(){
 }
 
 run_test(){
-    health_password="$HEALTHC_PASSWORD"
-    
-    if [[ -n "$HEALTHC_PASSWORD_FILE" ]]; then
-        health_password=$(head -n 1 "$HEALTHC_PASSWORD_FILE")
-    fi
-    
-    health_secret="$HEALTHC_SECRET"
-    
-    if [[ -n "$HEALTHC_SECRET_FILE" ]]; then
-        health_secret=$(head -n 1 "$HEALTHC_SECRET_FILE")
-    fi
-    
+    h_password=$([[ -z "$HEALTHC_PASSWORD_FILE" ]] \
+        && echo "$HEALTHC_PASSWORD" \
+        || head -n 1 "$HEALTHC_PASSWORD_FILE")
+
+    h_secret=$([[ -z "$HEALTHC_SECRET_FILE" ]] \
+        && echo "$HEALTHC_SECRET" \
+        || head -n 1 "$HEALTHC_SECRET_FILE")
+
     params="$([[ ! -z "$HEALTHC_TYPE" ]] && echo "-t $HEALTHC_TYPE")"
-    params="$params $HEALTHC_USER $health_password"
+    params="$params $HEALTHC_USER $h_password"
     params="$params $HEALTHC_HOST:$HEALTHC_PORT"
-    params="$params $HEALTHC_NAS_PORT_NUMBER $health_secret"
-    
+    params="$params $HEALTHC_NAS_PORT_NUMBER $h_secret"
+
     (
         radtest $params &> /dev/null \
-        && print_info_short "Radius: successful connection"
+        && print_info_short "RADIUS: successful connection"
     ) || \
     (
-        print_err_short "Radius: Unsuccessful connection - Host/Port/Type/User/NAS_PORT ($HEALTHC_HOST, $HEALTHC_PORT, $HEALTHC_TYPE, $HEALTHC_USER, $HEALTHC_NAS_PORT_NUMBER)" \
+        print_err_short "RADIUS: Unsuccessful connection - Host/Port/Type/User/NAS_PORT ($HEALTHC_HOST, $HEALTHC_PORT, $HEALTHC_TYPE, $HEALTHC_USER, $HEALTHC_NAS_PORT_NUMBER)" \
         && exit 1
     )
 }
