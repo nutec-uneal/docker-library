@@ -1,6 +1,6 @@
 services:
   server:
-    image: ghcr.io/nutec-uneal/freeradius:3.0.26-1
+    image: ghcr.io/nutec-uneal/freeradius:latest
     ports:
       - target: 1812
         published: 1812
@@ -34,7 +34,7 @@ services:
     networks:
       - radius-net
     healthcheck:
-      test: [ 'CMD', '/healthcheck.sh' ]
+      test: ["CMD", "/healthcheck.sh"]
       interval: 30s
       timeout: 15s
       retries: 3
@@ -48,7 +48,7 @@ services:
         window: 10s
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 256M
 
 volumes:
