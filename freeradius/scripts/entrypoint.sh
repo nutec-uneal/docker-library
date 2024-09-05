@@ -13,7 +13,7 @@ default_radius_conf="/usr/local/etc/radius"
 default_radius_dicts="/usr/share/freeradius"
 default_radiusclient_conf="/usr/local/etc/radiusclient"
 
-service_name="Radius"
+service_name="FreeRADIUS"
 none_value="__NONE__"
 
 
