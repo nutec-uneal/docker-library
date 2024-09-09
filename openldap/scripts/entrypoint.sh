@@ -1,10 +1,8 @@
 #!/bin/sh
 
 : ${OLDAP_CONF_DIR:="/etc/openldap"}
-: ${OLDAP_DATA_DIR:="=/var/lib/openldap"}
 : ${OLDAP_LOG_LEVEL:="0"}
-: ${OLDAP_HOST_LDAP:="localhost"}
-: ${LDIF_SCRIPTS_DIR:="/ldif-scripts"}
+: ${OLDAP_HOST:="ldap://127.0.0.1 ldaps://0.0.0.0"}
 : ${FD_LIMIT:="1024"}
 
 
@@ -39,13 +37,10 @@ print_help() {
     echo
     
     echo "Variables:"
-    echo "  OLDAP_CONF_DIR: DESC1"
-    echo "  OLDAP_DATA_DIR: DESC1"
-    echo "  OLDAP_LOG_LEVEL: DESC1"
-    echo "  OLDAP_HOST_LDAP: DESC1"
-    echo "  OLDAP_HOST_LDAPS: DESC1"
-    echo "  LDIF_SCRIPTS_DIR: DESC1"
-    echo "  FD_LIMIT: DESC1"
+    echo "  OLDAP_CONF_DIR: OpenLDAP configuration directory (default: /etc/openldap)."
+    echo "  OLDAP_LOG_LEVEL: Daemon debugging level (default: 0)."
+    echo "  OLDAP_HOST: List of URLs to serve (default: \"ldap://127.0.0.1 ldaps://0.0.0.0\")."
+    echo "  FD_LIMIT: \"Ulimit -n\" value."
 }
 
 print_info() {
@@ -65,9 +60,16 @@ print_err_short(){
 }
 
 print_resume(){
-    echo "print_resume....."
-    echo "resume1....."
-    echo "resume2....."
+    echo "[Default Dirs]"
+    echo "  - OpenLDAP: $default_openldap_conf"
+    echo "  - OpenLDAP Overlays: /usr/lib/openldap"
+    echo
+    echo "[Recommended Dirs]"
+    echo "  - /etc/openldap"
+    echo "  - /run/openldap"
+    echo "  - /var/lib/openldap"
+    echo "  - /var/cache/openldap"
+    echo "  - /var/log/openldap"
 }
 
 get_shell_options(){
@@ -151,7 +153,11 @@ cp_dir(){
 }
 
 init_dirs_if_empty(){
-    echo "init_dir_if_empty.."
+    check_dir_is_empty "$OLDAP_CONF_DIR"
+    [[ -n "$dir_is_empty" ]] \
+    && print_info "OLDAP_CONF_DIR: \"$OLDAP_CONF_DIR\" empty, creating..." \
+    && cp_dir "$default_openldap_conf" "$OLDAP_CONF_DIR" \
+    || print_info "OLDAP_CONF_DIR: \"$OLDAP_CONF_DIR\" [OK]."
 }
 
 mode_inspector(){
@@ -163,11 +169,16 @@ mode_inspector(){
 }
 
 mode_copy(){
-    echo "mode_copy.. dest -> $1"
+    print_info_short "Copying to \"$1\":"
+    
+    print_info_short "  - $default_openldap_conf"
+    cp_dir "$default_openldap_conf" "$1" "folder"
 }
 
 mode_app(){
-    entrypoint_cmd="echo "ok""
+    ulimit -n $FD_LIMIT
+
+    entrypoint_cmd="slapd -F $OLDAP_CONF_DIR -h \"$OLDAP_HOST\" -d $OLDAP_LOG_LEVEL"
     
     print_info "Starting $service_name..."
     print_info "Checking directories..."
@@ -177,12 +188,12 @@ mode_app(){
     print_info "Command executed: \"$entrypoint_cmd\""
     
     if [[ -z "$app_persistent_mode" ]]; then
-        $entrypoint_cmd
+        eval $entrypoint_cmd
     else
         local has_error=
         
         while [[ -z $has_error ]]; do
-            $entrypoint_cmd || has_error="yes"
+            eval $entrypoint_cmd || has_error="yes"
             
             if [[ -z $has_error ]]; then
                 print_info "Reloading program..."
