@@ -1,0 +1,49 @@
+services:
+  server:
+    image: ghcr.io/nutecuneal/openldap:v1.0.0
+    ports:
+      - target: 389
+        published: 389
+        mode: host
+
+      - target: 636 #(TLS/SSL)
+        published: 636
+        mode: host
+    volumes:
+      - conf:/etc/openldap
+      - data:/var/lib/openldap
+      - $(pwd)/ldif_scripts:/ldif-scripts:ro
+      - $(pwd)/certs:/certs:ro
+    networks:
+      - openldap-net
+    healthcheck:
+      test: [ 'CMD', '/healthcheck.sh' ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 10s
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 256M
+
+volumes:
+  conf:
+    name: openldap-conf
+  data:
+    name: openldap-data
+
+networks:
+  openldap-net:
+    name: openldap-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/28
