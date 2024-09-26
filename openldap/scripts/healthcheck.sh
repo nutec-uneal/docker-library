@@ -1,6 +1,6 @@
 #!/bin/sh
 
-: ${HEALTHC_HOST:="ldap://localhost"}
+: ${HEALTHC_URI:="ldap://localhost"}
 
 
 print_help() {
@@ -9,11 +9,13 @@ print_help() {
     echo
     
     echo "Variables:"
-    echo "  HEALTHC_HOST:  (default: ldap://localhost)"
-    echo "  HEALTHC_BIND_DN: DESC1"
-    echo "  HEALTHC_BIND_PASSWORD: DESC1"
-    echo "  HEALTHC_BIND_PASSWORD_FILE: DESC1"
-    echo "  HEALTHC_BASE_DN: DESC1"
+    echo "  HEALTHC_URI: server URI (default: ldap://localhost)."
+    echo "  HEALTHC_BIND_DN: distinguished Name binddn to bind to the LDAP directory."
+    echo "  HEALTHC_BIND_PASSWORD: passwd as the password for simple authentication."
+    echo "  HEALTHC_BIND_PASSWORD_FILE: passwd as the password for simple authentication (File)."
+    echo "  HEALTHC_BASE_DN: starting point for the search. If empty, HEALTHC_BIND_DN is used."
+    echo "  Note: \"_FILE\" versions are mutually exclusive with their common versions"
+    echo "      and have higher priority, in addition to not requiring shell escape characters."
 }
 
 print_info() {
@@ -35,18 +37,18 @@ print_err_short(){
 run_test(){
     h_password=$([[ -n "$HEALTHC_BIND_PASSWORD_FILE" ]] \
         && head -n 1 "$HEALTHC_BIND_PASSWORD_FILE" \
-        || echo "$HEALTHC_BIND_PASSWORD")
+    || echo "$HEALTHC_BIND_PASSWORD")
     
     h_basedn=$([[ -n "$HEALTHC_BASE_DN" ]] \
         && echo "$HEALTHC_BASE_DN" \
-        || echo "$HEALTHC_BIND_DN")
+    || echo "$HEALTHC_BIND_DN")
     
     (
-        ldapsearch -H "$HEALTHC_HOST" -D "$HEALTHC_BIND_DN" -w "$h_password" -b "$h_basedn" &> /dev/null \
+        ldapsearch -H "$HEALTHC_URI" -D "$HEALTHC_BIND_DN" -w "$h_password" -b "$h_basedn" &> /dev/null \
         && print_info_short "LDAP: successful connection"
     ) || \
     (
-        print_err_short "LDAP: Unsuccessful connection - Host/BindDN/BaseDN ($HEALTHC_HOST, $HEALTHC_BIND_DN, $h_basedn)" \
+        print_err_short "LDAP: Unsuccessful connection - Host/BindDN/BaseDN ($HEALTHC_URI, $HEALTHC_BIND_DN, $h_basedn)" \
         && exit 1
     )
 }

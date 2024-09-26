@@ -2,8 +2,7 @@
 
 : ${OLDAP_CONF_DIR:="/etc/openldap"}
 : ${OLDAP_LOG_LEVEL:="0"}
-: ${OLDAP_HOST:="ldap://127.0.0.1 ldaps://0.0.0.0"}
-: ${FD_LIMIT:="1024"}
+: ${OLDAP_URL:="ldap://127.0.0.1 ldaps://0.0.0.0"}
 
 
 default_openldap_conf="/usr/local/etc/openldap"
@@ -39,8 +38,7 @@ print_help() {
     echo "Variables:"
     echo "  OLDAP_CONF_DIR: OpenLDAP configuration directory (default: /etc/openldap)."
     echo "  OLDAP_LOG_LEVEL: Daemon debugging level (default: 0)."
-    echo "  OLDAP_HOST: List of URLs to serve (default: \"ldap://127.0.0.1 ldaps://0.0.0.0\")."
-    echo "  FD_LIMIT: \"Ulimit -n\" value."
+    echo "  OLDAP_URL: List of URLs to serve (default: \"ldap://127.0.0.1 ldaps://0.0.0.0\")."
 }
 
 print_info() {
@@ -147,7 +145,7 @@ cp_dir(){
         print_err "\"$dest_dir\" is not a directory or is not writable."
         exit 1
     fi
-
+    
     [[ "$3" == "folder" ]] && cp -r $source_dir $dest_dir || cp -r $source_dir/* $dest_dir
     chmod -R 750 $dest_dir
 }
@@ -176,9 +174,7 @@ mode_copy(){
 }
 
 mode_app(){
-    ulimit -n $FD_LIMIT
-
-    entrypoint_cmd="slapd -F $OLDAP_CONF_DIR -h \"$OLDAP_HOST\" -d $OLDAP_LOG_LEVEL"
+    entrypoint_cmd="slapd -F $OLDAP_CONF_DIR -h \"$OLDAP_URL\" -d $OLDAP_LOG_LEVEL"
     
     print_info "Starting $service_name..."
     print_info "Checking directories..."
