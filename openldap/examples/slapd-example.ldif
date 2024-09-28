@@ -1,7 +1,6 @@
 # slapadd -n 0 -F /etc/openldap -l /etc/openldap/slapd-example.ldif
 
 # Root Config "cn=config".
-
 dn: cn=config
 objectClass: olcGlobal
 cn: config
