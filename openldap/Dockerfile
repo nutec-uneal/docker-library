@@ -2,7 +2,7 @@ FROM alpine:3.20.2
 
 LABEL org.opencontainers.image.authors="NUTEC UNEAL" \
     org.opencontainers.image.base.name="docker.io/library/alpine:3.20.2" \
-    org.opencontainers.image.description="An open source implementation of the Lightweight Directory Access Protocol." \
+    org.opencontainers.image.description="An open source Lightweight Directory Access Protocol (LDAP)." \
     org.opencontainers.image.documentation="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.source="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.title="OpenLDAP" \
@@ -52,7 +52,7 @@ RUN chown -R root:root ${OPENLDAP_DIR_CONF_DEFAULT} \
     ${OPENLDAP_DIR_LOG}
 
 
-#USER ${USER_NAME}
+USER ${USER_NAME}
 
 EXPOSE 389
 EXPOSE 636
