@@ -1,14 +1,14 @@
-FROM alpine:3.20.2
+FROM alpine:3.20.3
 
 LABEL org.opencontainers.image.authors="NUTEC UNEAL" \
-    org.opencontainers.image.base.name="docker.io/library/alpine:3.20.2" \
+    org.opencontainers.image.base.name="docker.io/library/alpine:3.20.3" \
     org.opencontainers.image.description="An open source Lightweight Directory Access Protocol (LDAP)." \
     org.opencontainers.image.documentation="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.source="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.title="OpenLDAP" \
     org.opencontainers.image.url="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.vendor="NUTEC UNEAL" \
-    org.opencontainers.image.version="2.6.7-1"
+    org.opencontainers.image.version="2.6.8-1"
 
 ARG PUID=1024
 ARG PGID=1024
@@ -26,10 +26,10 @@ ARG OPENLDAP_DIR_LOG=/var/log/openldap
 WORKDIR /
 USER root
 
-RUN apk add --no-cache \ 
-    openldap-back-mdb \
-    openldap-overlay-all \
+RUN apk --update-cache add --no-cache \
     openldap \
+    openldap-overlay-all \
+    openldap-back-mdb \
     openldap-clients \  
     && (grep "^${USER_NAME}:" /etc/passwd &> /dev/null && deluser ${USER_NAME} || true) \
     && (grep "^${GROUP_NAME}:" /etc/group &> /dev/null && delgroup ${GROUP_NAME} || true) \
