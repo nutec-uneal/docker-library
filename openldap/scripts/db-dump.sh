@@ -201,6 +201,8 @@ if [[ "$?" == "0" ]]; then
                 rm -rf $wipe_dir/* &> /dev/null && print_info_short "  - WIPE: OK" || print_info_short "  - WIPE: FAIL"
             fi
         fi
+    else
+        print_info_short "  - WIPE: [NOT EXECUTED]" 
     fi
     
     exit 0
