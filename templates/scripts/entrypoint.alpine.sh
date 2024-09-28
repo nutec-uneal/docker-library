@@ -177,6 +177,8 @@ mode_app(){
                     print_info "Waiting $app_persistent_mode_wait_time seconds..."
                     sleep $app_persistent_mode_wait_time
                 fi
+
+                print_info "Program reloaded..."
             fi
         done
         
