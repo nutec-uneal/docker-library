@@ -25,6 +25,10 @@ services:
       - HEALTHC_BASE_DN=
     networks:
       - openldap-net
+    ulimits:
+      nofile:
+        hard: 1024
+        soft: 1024
     healthcheck:
       test: [ "CMD", "/healthcheck.sh" ]
       interval: 30s
