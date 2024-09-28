@@ -1,23 +1,31 @@
 services:
   server:
-    image: ghcr.io/nutecuneal/openldap:v1.0.0
+    image: ghcr.io/nutec-uneal/openldap:latest
     ports:
       - target: 389
         published: 389
         mode: host
-
-      - target: 636 #(TLS/SSL)
+      - target: 636
         published: 636
         mode: host
     volumes:
       - conf:/etc/openldap
       - data:/var/lib/openldap
-      - $(pwd)/ldif_scripts:/ldif-scripts:ro
-      - $(pwd)/certs:/certs:ro
+      - logs:/var/log/openldap
+      - cache:/var/cache/openldap
+    environment:
+      - OLDAP_CONF_DIR=
+      - OLDAP_URL=
+      - OLDAP_LOG_LEVEL=
+      - HEALTHC_URI=
+      - HEALTHC_BIND_DN=
+      - HEALTHC_BIND_PASSWORD=
+      - HEALTHC_BIND_PASSWORD_FILE=
+      - HEALTHC_BASE_DN=
     networks:
       - openldap-net
     healthcheck:
-      test: [ 'CMD', '/healthcheck.sh' ]
+      test: ["CMD", "/healthcheck.sh"]
       interval: 30s
       timeout: 15s
       retries: 3
@@ -31,7 +39,7 @@ services:
         window: 10s
       resources:
         limits:
-          cpus: '1.0'
+          cpus: "1.0"
           memory: 256M
 
 volumes:
@@ -39,6 +47,10 @@ volumes:
     name: openldap-conf
   data:
     name: openldap-data
+  logs:
+    name: openldap-logs
+  cache:
+    name: openldap-cache
 
 networks:
   openldap-net:
