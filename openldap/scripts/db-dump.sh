@@ -13,7 +13,7 @@ print_help() {
     echo
     echo "Options:"
     echo "  <dbNumber>: database number."
-    echo "  <pathDest>: backup destination folder.."
+    echo "  <pathDest>: backup destination folder."
     echo "  <outputFileName>: output file name (output: <outputFileName>.ldif)."
     echo "  -c: you will be asked to confirm the operation."
     echo "  -d [<configDir>]: OpenLDAP configuration directory (default: \"$default_openldap_conf\")."
@@ -162,7 +162,7 @@ check_dir_is_readable_exit "$config_dir"
 check_dir_is_writeable_exit "$path_dest"
 [[ "$wipe_dir" == "$auto_action_value" ]] && find_dir_wipe_exit "$db_number"
 
-output_name=$([[ -n "$is_timed" ]] && echo "$output_name.ldif-$(date +%Y%m%d%H%M)" || echo "$output_name.ldif")
+output_name=$([[ -n "$is_timed" ]] && echo "$output_name.ldif-$(date +%Y%m%d%_H%M)" || echo "$output_name.ldif")
 output_file="$path_dest$output_name"
 
 
@@ -176,7 +176,7 @@ if [[ -n "$is_confirmable" ]]; then
     
     read -p "Continue? (Y/N): " confirm
     
-    if [[ "$confirm" != [yY] ]]; then
+    if [[ "$confirm" != "[yY]" ]]; then
         print_info_short "Canceled..."
         exit 0
     fi
@@ -193,7 +193,7 @@ if [[ "$?" == "0" ]]; then
         check_dir_is_writeable "$wipe_dir"
         
         if [[ -z "$is_writeable" ]]; then
-            print_info_short "  - WIPE: FAIL [NOT IS WRITABLE]"
+            print_info_short "  - WIPE: FAIL [NO WRITING PERMISSION]"
         else
             if [[ -n "$wipe_if_not_exist" &&  -f "$wipe_if_not_exist" ]]; then
                 print_info_short "  - WIPE: FAIL [<wipeIfFile> EXIST]"
