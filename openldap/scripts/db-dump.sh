@@ -162,7 +162,7 @@ check_dir_is_readable_exit "$config_dir"
 check_dir_is_writeable_exit "$path_dest"
 [[ "$wipe_dir" == "$auto_action_value" ]] && find_dir_wipe_exit "$db_number"
 
-output_name=$([[ -n "$is_timed" ]] && echo "$output_name.ldif-$(date +%Y%m%d%_H%M)" || echo "$output_name.ldif")
+output_name=$([[ -n "$is_timed" ]] && echo "$output_name.ldif-$(date +%Y%m%d_%H%M)" || echo "$output_name.ldif")
 output_file="$path_dest$output_name"
 
 
@@ -202,10 +202,8 @@ if [[ "$?" == "0" ]]; then
             fi
         fi
     else
-        print_info_short "  - WIPE: [NOT EXECUTED]" 
+        print_info_short "  - WIPE: [NOT EXECUTED]"
     fi
-    
-    exit 0
 else
     print_err_short "[Report]"
     print_err_short "  - DUMP: FAIL"
@@ -213,3 +211,5 @@ else
     
     exit 1
 fi
+
+exit 0
