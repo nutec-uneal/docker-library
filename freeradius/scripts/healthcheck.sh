@@ -3,6 +3,7 @@
 : ${HEALTHC_HOST:="localhost"}
 : ${HEALTHC_PORT:="11812"}
 : ${HEALTHC_NAS_PORT_NUMBER:="0"}
+: ${HEALTHC_TYPE:="pap"}
 
 
 print_help() {
@@ -17,7 +18,7 @@ print_help() {
     echo "  HEALTHC_PASSWORD: user password."
     echo "  HEALTHC_PASSWORD_FILE: user password file."
     echo "  HEALTHC_TYPE: authentication method."
-    echo "      Options: pap, chap, mschap, eap-md5 ou [EMPTY (default)]."
+    echo "      Options: pap, chap, mschap, eap-md5 (default: pap)."
     echo "  HEALTHC_NAS_PORT_NUMBER: NAS port number (default: 0)."
     echo "  HEALTHC_SECRET: client secret."
     echo "  HEALTHC_SECRET_FILE: client secret file."
@@ -42,21 +43,17 @@ print_err_short(){
 }
 
 run_test(){
-    h_password=$([[ -z "$HEALTHC_PASSWORD_FILE" ]] \
-        && echo "$HEALTHC_PASSWORD" \
-        || head -n 1 "$HEALTHC_PASSWORD_FILE")
-
-    h_secret=$([[ -z "$HEALTHC_SECRET_FILE" ]] \
-        && echo "$HEALTHC_SECRET" \
-        || head -n 1 "$HEALTHC_SECRET_FILE")
-
-    params="$([[ ! -z "$HEALTHC_TYPE" ]] && echo "-t $HEALTHC_TYPE")"
-    params="$params $HEALTHC_USER $h_password"
-    params="$params $HEALTHC_HOST:$HEALTHC_PORT"
-    params="$params $HEALTHC_NAS_PORT_NUMBER $h_secret"
-
+    h_password=$([[ -n "$HEALTHC_PASSWORD_FILE" ]] \
+        && head -n 1 "$HEALTHC_PASSWORD_FILE" \
+        || echo "$HEALTHC_PASSWORD")
+    
+    h_secret=$([[ -n "$HEALTHC_SECRET_FILE" ]] \
+        && head -n 1 "$HEALTHC_SECRET_FILE" \
+        || echo "$HEALTHC_SECRET")
+    
     (
-        radtest $params &> /dev/null \
+        radtest -t "$HEALTHC_TYPE" "$HEALTHC_USER" "$h_password" \
+        "$HEALTHC_HOST:$HEALTHC_PORT" "$HEALTHC_NAS_PORT_NUMBER" "$h_secret" &> /dev/null \
         && print_info_short "RADIUS: successful connection"
     ) || \
     (

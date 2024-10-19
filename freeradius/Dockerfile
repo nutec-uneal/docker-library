@@ -1,14 +1,14 @@
-FROM alpine:3.20.2
+FROM alpine:3.20.3
 
 LABEL org.opencontainers.image.authors="NUTEC UNEAL" \
-    org.opencontainers.image.base.name="docker.io/library/alpine:3.20.2" \    
+    org.opencontainers.image.base.name="docker.io/library/alpine:3.20.3" \
     org.opencontainers.image.description="The world's leading RADIUS server." \
     org.opencontainers.image.documentation="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.source="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.title="FreeRADIUS" \
     org.opencontainers.image.url="https://github.com/nutec-uneal/docker-library" \
     org.opencontainers.image.vendor="NUTEC UNEAL" \
-    org.opencontainers.image.version="3.0.26-1"
+    org.opencontainers.image.version="3.0.26-1" 
 
 ARG PUID=1024
 ARG PGID=1024

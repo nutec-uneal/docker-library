@@ -7,3 +7,9 @@
 .dockerignore
 docker-compose*
 Dockerfile
+
+# Extra
+tmp
+temp
+data
+storage

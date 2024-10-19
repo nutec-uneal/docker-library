@@ -1,6 +1,7 @@
 services:
   server:
     image: ghcr.io/nutec-uneal/freeradius:latest
+    command: [ "inspectormode" ]
     ports:
       - target: 1812
         published: 1812
@@ -34,7 +35,7 @@ services:
     networks:
       - radius-net
     healthcheck:
-      test: ["CMD", "/healthcheck.sh"]
+      test: [ "CMD", "/healthcheck.sh" ]
       interval: 30s
       timeout: 15s
       retries: 3
