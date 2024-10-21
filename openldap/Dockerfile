@@ -41,7 +41,6 @@ RUN apk --update-cache add --no-cache \
     && rm -rf ${OPENLDAP_DIR_CONF}/* /tmp/*
 
 COPY scripts/*.sh /
-COPY custom-schema ${OPENLDAP_DIR_CONF_DEFAULT}/custom-schema/
 COPY examples/*-example.ldif ${OPENLDAP_DIR_CONF_DEFAULT}/
 
 RUN chown -R root:root ${OPENLDAP_DIR_CONF_DEFAULT} \
