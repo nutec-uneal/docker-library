@@ -8,7 +8,7 @@ default_openldap_pidpath="/run/openldap/openldap.pid"
 
 print_help() {
     echo "Usage: $0 --help"
-    echo "Usage: $0 [-c] [-t] [-w [<wipeDir>]] [-W <wipeIfFile>] -d [<configDir>]"
+    echo "Usage: $0 [-c] [-h] [-t] [-w [<wipeDir>]] [-W <wipeIfFile>] -d [<configDir>]"
     echo "  <dbNumber> <pathDest> <outputFileName>"
     echo
     echo "Options:"
@@ -17,6 +17,7 @@ print_help() {
     echo "  <outputFileName>: output file name (output: <outputFileName>.ldif)."
     echo "  -c: you will be asked to confirm the operation."
     echo "  -d [<configDir>]: OpenLDAP configuration directory (default: \"$default_openldap_conf\")."
+    echo "  -h: creates checksum (sha256) of file (output: <outputFileName>.ldif.checksum)."
     echo "  -t: a time label will be added to the output name."
     echo "  -w [<wipeDir>]: after dumping, the contents of <wipeDir> will be deleted."
     echo "      If <wipeDir> empty then olcDbDirectory will be used."
@@ -58,7 +59,7 @@ get_options_app(){
     local opt=
     local opt_arg=
     
-    while getopts ":c:d:t:w:W:" opt_read $1; do
+    while getopts ":c:d:h:t:w:W:" opt_read $1; do
         opt="$opt_read"
         opt_arg="$OPTARG"
         
@@ -68,6 +69,9 @@ get_options_app(){
             ;;
             "d")
                 config_dir=$([[ "$opt_arg" != "$none_value" ]] && echo "$opt_arg" || echo "$default_openldap_conf")
+            ;;
+            "h")
+                has_hash="yes"
             ;;
             "t")
                 is_timed="yes"
@@ -141,6 +145,7 @@ wipe_dir=
 wipe_if_not_exist=
 is_timed=
 is_confirmable=
+has_hash=
 
 if [[ "$#" -eq 1 && "$1" == "--help" ]]; then
     print_help
@@ -171,10 +176,11 @@ if [[ -n "$is_confirmable" ]]; then
     print_info_short "  - Conf: $config_dir"
     print_info_short "  - DBNumber: $db_number"
     print_info_short "  - Output: $output_file"
+    print_info_short "  - Hash: $has_hash"
     print_info_short "  - Wipe (if not exist): $wipe_dir ($wipe_if_not_exist)"
     print_info_short
     
-    read -p "Continue? (Y/N): " confirm
+    read -p "Continue? (y/n): " confirm
     
     if [[ "$confirm" != "[yY]" ]]; then
         print_info_short "Canceled..."
@@ -183,11 +189,15 @@ if [[ -n "$is_confirmable" ]]; then
 fi
 
 # RUN DUMP
-slapcat -F $config_dir -n $db_number -l $output_file
+slapcat -F "$config_dir" -n "$db_number" -l "$output_file"
 
 if [[ "$?" == "0" ]]; then
     print_info_short "[Report]"
     print_info_short "  - DUMP: OK"
+
+    if [[ -n "$has_hash" ]];then
+        sha256sum "$output_file" | cut -d " " -f1 > "$output_file.checksum" && print_info_short "Hash (sha256) - OK" || print_err_short "Hash (sha256) - FAIL"
+    fi
     
     if [[ -n "$wipe_dir" ]]; then
         check_dir_is_writeable "$wipe_dir"
