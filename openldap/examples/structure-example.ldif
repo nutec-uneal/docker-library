@@ -1,0 +1,30 @@
+# slapadd -n 2 -F /etc/openldap -l /etc/openldap/structure-example.ldif
+## Extra examples
+
+dn: o=myorg,dc=domain,dc=my
+objectClass: top
+objectClass: organization
+o: myorg
+st: My State
+businessCategory: Education
+description: Org. description.
+
+dn: ou=example,o=myorg,dc=domain,dc=my
+objectClass: top
+objectClass: organizationalUnit
+ou: example
+description: Example description.
+
+dn: uid=myname,ou=example,o=myorg,dc=domain,dc=my
+objectClass: top
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+uid: myname
+mail: myname@email.com
+cn: My Name
+givenName: My
+sn: Name
+displayName: My Name
+userPassword: myname
+description: who am I.

@@ -1,0 +1,66 @@
+services:
+  server:
+    image: ghcr.io/nutec-uneal/openldap:latest
+    command: [ "inspectormode" ]
+    ports:
+      - target: 389
+        published: 389
+        mode: host
+      - target: 636
+        published: 636
+        mode: host
+    volumes:
+      - conf:/etc/openldap
+      - data:/var/lib/openldap
+      - logs:/var/log/openldap
+      - cache:/var/cache/openldap
+    environment:
+      - OLDAP_CONF_DIR=
+      - OLDAP_URL=
+      - OLDAP_LOG_LEVEL=
+      - HEALTHC_URI=
+      - HEALTHC_BIND_DN=
+      - HEALTHC_BIND_PASSWORD=
+      - HEALTHC_BIND_PASSWORD_FILE=
+      - HEALTHC_BASE_DN=
+    networks:
+      - openldap-net
+    ulimits:
+      nofile:
+        hard: 1024
+        soft: 1024
+    healthcheck:
+      test: [ "CMD", "/healthcheck.sh" ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 10s
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+
+volumes:
+  conf:
+    name: openldap-conf
+  data:
+    name: openldap-data
+  logs:
+    name: openldap-logs
+  cache:
+    name: openldap-cache
+
+networks:
+  openldap-net:
+    name: openldap-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/28

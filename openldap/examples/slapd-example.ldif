@@ -1,0 +1,73 @@
+# slapadd -n 0 -F /etc/openldap -l /etc/openldap/slapd-example.ldif
+
+# Root Config "cn=config".
+dn: cn=config
+objectClass: olcGlobal
+cn: config
+olcConnMaxPending: 512
+olcConnMaxPendingAuth: 1024
+olcIdleTimeout: 30
+olcWriteTimeout: 30
+olcPidFile: /run/openldap/openldap.pid
+
+
+# dynamic modules
+dn: cn=module,cn=config
+objectClass: olcModuleList
+cn: module
+olcModulePath: /usr/lib/openldap
+olcModuleLoad: back_mdb.so
+#olcModuleload:	back_ldap.so
+#olcModuleload:	back_passwd.so
+
+
+# Schemas
+dn: cn=schema,cn=config
+objectClass: olcSchemaConfig
+cn: schema
+
+## Schemas Include
+include: file:///etc/openldap/schema/core.ldif
+include: file:///etc/openldap/schema/cosine.ldif
+include: file:///etc/openldap/schema/inetorgperson.ldif
+include: file:///etc/openldap/schema/nis.ldif
+
+
+# Config. Backends
+dn: olcBackend=mdb,cn=config
+objectClass: olcBackendConfig
+olcBackend: mdb
+
+
+## Frontend
+dn: olcDatabase=frontend,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcFrontendConfig
+olcDatabase: frontend
+
+## Config
+dn: olcDatabase=config,cn=config
+objectClass: olcDatabaseConfig
+olcDatabase: config
+olcRootDN: cn=admin,cn=config
+olcRootPW: admin
+
+## Monitor
+dn: olcDatabase=monitor,cn=config
+objectClass: olcDatabaseConfig
+olcDatabase: monitor
+olcMonitoring: FALSE
+
+## Data
+dn: olcDatabase=mdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMdbConfig
+olcDatabase: mdb
+olcDbMaxSize: 1073741824
+olcDbDirectory:	/var/lib/openldap/openldap-data
+olcSuffix: dc=domain,dc=my
+olcRootDN: cn=Manager,dc=domain,dc=my
+olcRootPW: secret
+olcDbIndex: objectClass eq
+olcDbIndex: uid pres,eq
+olcDbIndex: cn,sn pres,eq,approx,sub

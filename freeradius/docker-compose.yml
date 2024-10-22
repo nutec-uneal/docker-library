@@ -1,0 +1,73 @@
+services:
+  server:
+    image: ghcr.io/nutec-uneal/freeradius:latest
+    command: [ "inspectormode" ]
+    ports:
+      - target: 1812
+        published: 1812
+        protocol: udp
+        mode: host
+      - target: 1813
+        published: 1813
+        protocol: udp
+        mode: host
+    volumes:
+      - conf:/etc/radius
+      - data:/var/lib/radius
+      - logs:/var/log/radius
+      - cache:/var/cache/radius
+      - conf-client:/etc/radiusclient
+    environment:
+      - RADIUS_CONF_DIR=
+      - RADIUS_DICT_DIR=
+      - RADIUS_LOG_LEVEL=
+      - RADIUS_LOG_OUTPUT=
+      - RADIUS_CLIENT_CONF_DIR=
+      - HEALTHC_HOST=
+      - HEALTHC_PORT=
+      - HEALTHC_USER=
+      - HEALTHC_PASSWORD=
+      - HEALTHC_PASSWORD_FILE=
+      - HEALTHC_TYPE=
+      - HEALTHC_NAS_PORT_NUMBER=
+      - HEALTHC_SECRET=
+      - HEALTHC_SECRET_FILE=
+    networks:
+      - radius-net
+    healthcheck:
+      test: [ "CMD", "/healthcheck.sh" ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 10s
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 256M
+
+volumes:
+  conf:
+    name: radius-conf
+  data:
+    name: radius-data
+  logs:
+    name: radius-logs
+  cache:
+    name: radius-cache
+  conf-client:
+    name: radius-conf-client
+
+networks:
+  radius-net:
+    name: radius-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/28
