@@ -1,4 +1,11 @@
 #!/bin/sh
+
+: ${PHP_CONF_DIR:="/etc/php"}
+: ${PHP_FPM_CONF_DIR:="/etc/php-fpm"}
+: ${LAM_DIR:="/var/www/html"}
+: ${LAM_DATA_DIR:="/var/lib/lam"}
+
+
 default_php_conf="/usr/local/etc/php"
 default_php_fpm_conf="/usr/local/etc/php-fpm"
 lam_srcbin="/usr/share/lam"
@@ -32,9 +39,10 @@ print_help() {
     echo
     
     echo "Variables:"
-    echo "  VAR_NAME1: DESC1"
-    echo "  VAR_NAME2: DESC2"
-    echo "  ...: ..."
+    echo "  PHP_CONF_DIR: PHP configuration directory (default: /etc/php)."
+    echo "  PHP_FPM_CONF_DIR: PHP-FPM configuration directory (default: /etc/php-fpm)."
+    echo "  LAM_DIR: LAM application directory (default: /var/www/html)."
+    echo "  LAM_DATA_DIR: LAM data directory (default: /var/lib/lam)."
 }
 
 print_info() {
@@ -144,13 +152,70 @@ cp_dir(){
         print_err "\"$dest_dir\" is not a directory or is not writable."
         exit 1
     fi
-
+    
     [[ "$3" == "folder" ]] && cp -r $source_dir $dest_dir || cp -r $source_dir/* $dest_dir
     chmod -R 750 $dest_dir
 }
 
 init_dirs_if_empty(){
-    echo "init_dir_if_empty.."
+    check_dir_is_empty "$PHP_CONF_DIR"
+    [[ -z "$dir_is_empty" ]] \
+    && print_info "PHP_CONF_DIR: \"$PHP_CONF_DIR\" [OK]." \
+    || (print_info "PHP_CONF_DIR: \"$PHP_CONF_DIR\" empty, creating..."; \
+    cp_dir "$default_php_conf" "$PHP_CONF_DIR")
+    
+    check_dir_is_empty "$PHP_FPM_CONF_DIR"
+    [[ -z "$dir_is_empty" ]] \
+    && print_info "PHP_FPM_CONF_DIR: \"$PHP_FPM_CONF_DIR\" [OK]." \
+    || (print_info "PHP_FPM_CONF_DIR: \"$PHP_FPM_CONF_DIR\" empty, creating..."; \
+    cp_dir "$default_php_fpm_conf" "$PHP_FPM_CONF_DIR")
+    
+    local temp_dir="/tmp"
+    
+    check_dir_is_empty "$LAM_DIR"
+    lam_dir_is_empty="$dir_is_empty"
+    
+    check_dir_is_empty "$LAM_DATA_DIR"
+    lam_data_dir_is_empty="$dir_is_empty"
+    
+    if [[ -n "$lam_dir_is_empty" || -n "$lam_data_dir_is_empty" ]]; then
+        rm -rf $temp_dir/*
+        tar -xf $lam_srcbin/ldap-account-manager-*.tar.bz2 -C $temp_dir --strip-components=1
+    fi
+    
+    if [[ -z "$lam_data_dir_is_empty" ]]; then
+        print_info "LAM_DATA_DIR: \"$LAM_DATA_DIR\" [OK]."
+    else
+        print_info "LAM_DATA_DIR: \"$LAM_DATA_DIR\" empty, creating..."
+        cp_dir "$temp_dir/config" "$LAM_DATA_DIR" "folder"
+        cp_dir "$temp_dir/sess" "$LAM_DATA_DIR" "folder"
+        cp_dir "$temp_dir/tmp" "$LAM_DATA_DIR" "folder"
+    fi
+    
+    if [[ -z "$lam_dir_is_empty" ]]; then
+        print_info "LAM_DIR: \"$LAM_DIR\" [OK]."
+    else
+        print_info "LAM_DIR: \"$LAM_DIR\" empty, creating..."
+        cp_dir "$temp_dir" "$LAM_DIR"
+        
+        rm -rf $LAM_DIR/config \
+        $LAM_DIR/sess \
+        $LAM_DIR/tmp \
+        $LAM_DIR/COPYING \
+        $LAM_DIR/HISTORY \
+        $LAM_DIR/Makefile.in \
+        $LAM_DIR/README \
+        $LAM_DIR/configure \
+        $LAM_DIR/configure.ac \
+        $LAM_DIR/copyright \
+        $LAM_DIR/install.sh
+        
+        ln -sf $LAM_DATA_DIR/config $LAM_DIR/config
+        ln -sf $LAM_DATA_DIR/sess $LAM_DIR/sess
+        ln -sf $LAM_DATA_DIR/tmp $LAM_DIR/tmp
+    fi
+    
+    rm -rf $temp_dir/*
 }
 
 mode_inspector(){
@@ -175,7 +240,7 @@ mode_copy(){
 }
 
 mode_app(){
-    entrypoint_cmd="echo "ok""
+    entrypoint_cmd="php-fpm -F -c $PHP_CONF_DIR -p $PHP_FPM_CONF_DIR -y $PHP_FPM_CONF_DIR/php-fpm.conf"
     
     print_info "Starting $service_name..."
     print_info "Checking directories..."

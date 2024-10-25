@@ -35,9 +35,7 @@ RUN apk --update-cache add --no-cache fcgi \
     && mkdir ${PHP_DIR_CONF_FPM_DEFAULT} ${PHP_DIR_CONF} ${PHP_DIR_CONF_FPM} \
     ${PHP_DIR_PID} ${PHP_DIR_LOG} \
     && mv /usr/local/etc/php-fpm.* -t ${PHP_DIR_CONF_FPM_DEFAULT} \
-    && chmod +x /usr/local/bin/install-php-extensions \
-    && install-php-extensions apcu bz2 gd exif gettext gmp \
-    intl ldap mysqli opcache xdebug xmlrpc zip
+    && chmod +x /usr/local/bin/install-php-extensions
 
 COPY ./*.sh /
 
