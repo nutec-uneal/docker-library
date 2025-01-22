@@ -1,0 +1,24 @@
+#----------------------
+# Attributes
+#----------------------
+attributetype ( 1.3.6.1.4.1.25178.1.2.3 NAME  'schacDateOfBirth'
+    DESC 'Data de nascimento'
+    EQUALITY numericStringMatch
+    ORDERING numericStringOrderingMatch
+    SUBSTR numericStringSubstringsMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.36
+    SINGLE-VALUE )
+
+attributetype ( 1.3.6.1.4.1.25178.1.2.5 NAME 'schacCountryOfCitizenship'
+    DESC 'Pais emissor do documento/passaporte'
+    EQUALITY caseIgnoreMatch
+    SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{16} )
+
+
+#----------------------
+# ObjectClasses
+#----------------------
+objectclass ( 1.3.6.1.4.1.25178.1.1.1 NAME 'schacPersonalCharacteristics'
+    DESC 'Caracteristicas pessoais de um usuario'
+    SUP 'top' AUXILIARY
+    MAY ( schacDateOfBirth $ schacCountryOfCitizenship )) 

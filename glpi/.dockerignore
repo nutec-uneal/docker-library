@@ -1,0 +1,9 @@
+# Git and cache
+.git
+.gitignore
+.cache
+
+# Docker
+.dockerignore
+docker-compose*
+Dockerfile

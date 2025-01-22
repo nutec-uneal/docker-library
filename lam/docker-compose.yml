@@ -1,0 +1,102 @@
+services:
+  app:
+    image: ghcr.io/nutec-uneal/lam:latest
+    command: [ "inspectormode" ]
+    ports:
+      - target: 9000
+        published: 9000
+        protocol: tcp
+        mode: host
+    volumes:
+      - conf-php:/etc/php:ro
+      - conf-php-fpm:/etc/php-fpm:ro
+      - logs-php:/var/log/php
+      - app:/var/www/html:ro
+      - data:/var/lib/lam
+      - logs:/var/log/lam
+    environment:
+      - PHP_CONF_DIR=
+      - PHP_FPM_CONF_DIR=
+      - LAM_DIR=
+      - LAM_DATA_DIR=
+      - HEALTHC_HOST=
+      - HEALTHC_PORT=
+      - HEALTHC_SFILENAME=
+      - HEALTHC_REQMETHOD=
+    networks:
+      - lam-net
+    healthcheck:
+      test: [ "CMD", "/healthcheck.sh" ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 10s
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 256M
+  
+  nginx:
+    image: nginx:alpine3.20
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+    volumes:
+      - $(pwd)/nginx-fastcgi.conf:/etc/nginx/nginx.conf
+      - app:/var/www/html:ro
+    networks:
+      - lam-net
+    healthcheck:
+      test: [
+        "CMD",
+        "curl",
+        "-fs",
+        "http://localhost",
+        "&> /dev/null",
+        "||",
+        "exit 1"
+      ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 10s
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 256M
+
+volumes:
+  conf-php:
+    name: lam-conf-php
+  conf-php-fpm:
+    name: lam-conf-php-fpm
+  logs-php:
+    name: lam-logs-php
+  app:
+    name: lam-app
+  data:
+    name: lam-data
+
+networks:
+  lam-net:
+    name: lam-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/28

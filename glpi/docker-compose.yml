@@ -1,0 +1,113 @@
+services:
+  webserver:
+    image: ghcr.io/nutec-uneal/glpi:latest
+    command: [ "inspectormode" ]
+    ports:
+      - target: 9000
+        published: 9000
+        protocol: tcp
+        mode: host
+    volumes:
+      - conf-php:/etc/php:ro
+      - conf-php-fpm:/etc/php-fpm:ro
+      - logs-php:/var/log/php
+      - app:/var/www/html
+      - marketplace:/var/www/html/marketplace
+      - conf:/etc/glpi:ro
+      - data:/var/lib/glpi
+      - logs:/var/log/glpi
+    environment:
+      - PHP_CONF_DIR=
+      - PHP_FPM_CONF_DIR=
+      - GLPI_DIR=
+      - GLPI_CONF_DIR=
+      - GLPI_DATA_DIR=
+      - GLPI_CRON_LOG_OUTPUT=
+      - HEALTHC_HOST=
+      - HEALTHC_PORT=
+      - HEALTHC_SFILENAME=
+      - HEALTHC_REQMETHOD=
+    networks:
+      - glpi-net
+    healthcheck:
+      test: [ "CMD", "/healthcheck.sh" ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 10s
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 256M
+  
+  nginx:
+    image: nginx:alpine3.20
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+    volumes:
+      - $(pwd)/nginx-fastcgi.conf:/etc/nginx/nginx.conf
+      - app:/var/www/html:ro
+      - marketplace:/var/www/html/marketplace:ro
+    networks:
+      - glpi-net
+    healthcheck:
+      test: [
+        "CMD",
+        "curl",
+        "-fs",
+        "http://localhost",
+        "&> /dev/null",
+        "||",
+        "exit 1"
+      ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 10s
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+        window: 10s
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 256M
+
+volumes:
+  conf-php:
+    name: glpi-conf-php
+  conf-php-fpm:
+    name: glpi-conf-php-fpm
+  logs-php:
+    name: glpi-logs-php
+  app:
+    name: glpi-app
+  marketplace:
+    name: glpi-marketplace
+  conf:
+    name: glpi-conf
+  data:
+    name: glpi-data
+  logs:
+    name: glpi-logs
+
+networks:
+  glpi-net:
+    name: glpi-net
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/28
