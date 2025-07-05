@@ -1,7 +1,7 @@
 services:
   server:
     image: ghcr.io/nutec-uneal/freeradius:latest
-    command: [ "inspectormode" ]
+    command: [ "inspectmode" ]
     ports:
       - target: 1812
         published: 1812
@@ -12,26 +12,21 @@ services:
         protocol: udp
         mode: host
     volumes:
-      - conf:/etc/radius
+      - conf:/etc/raddb
       - data:/var/lib/radius
-      - logs:/var/log/radius
       - cache:/var/cache/radius
+      - logs:/var/log/radius
       - conf-client:/etc/radiusclient
     environment:
-      - RADIUS_CONF_DIR=
-      - RADIUS_DICT_DIR=
-      - RADIUS_LOG_LEVEL=
-      - RADIUS_LOG_OUTPUT=
-      - RADIUS_CLIENT_CONF_DIR=
-      - HEALTHC_HOST=
-      - HEALTHC_PORT=
-      - HEALTHC_USER=
-      - HEALTHC_PASSWORD=
-      - HEALTHC_PASSWORD_FILE=
-      - HEALTHC_TYPE=
-      - HEALTHC_NAS_PORT_NUMBER=
-      - HEALTHC_SECRET=
-      - HEALTHC_SECRET_FILE=
+      - PERSISTENT_MODE=
+      - HEALTH_HOST=
+      - HEALTH_PORT=
+      - HEALTH_PROTOCOL=
+      - HEALTH_USER=
+      - HEALTH_PASSWORD_FILE=
+      - HEALTH_TYPE=
+      - HEALTH_NAS_PORT_NUMBER=
+      - HEALTH_SECRET_FILE=
     networks:
       - radius-net
     healthcheck:
@@ -57,10 +52,10 @@ volumes:
     name: radius-conf
   data:
     name: radius-data
-  logs:
-    name: radius-logs
   cache:
     name: radius-cache
+  logs:
+    name: radius-logs
   conf-client:
     name: radius-conf-client
 
